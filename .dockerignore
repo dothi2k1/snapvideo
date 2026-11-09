@@ -1,6 +1,7 @@
-yt-dlp
 *.mp4
 *.mp3
 url
 node_modules
 .git
+yt-dlp/test
+yt-dlp/.github

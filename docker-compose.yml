@@ -1,7 +1,7 @@
 services:
   snapvideo:
     build: .
-    image: snapvideo:latest
+    image: mondo0810/snapvideo:latest
     container_name: snapvideo
     restart: unless-stopped
     # DNS cố định, tránh lỗi "Could not resolve host" của Docker Desktop trên Windows
@@ -16,4 +16,4 @@ services:
       MAX_JOBS: 3
       # Link iCloud của phím tắt iPhone (để trống thì trang hiện hướng dẫn tự tạo)
       # Ví dụ: https://www.icloud.com/shortcuts/xxxxxxxxxxxxxxxx
-      SHORTCUT_URL: ""
+      SHORTCUT_URL: "https://www.icloud.com/shortcuts/xxxxxxxxxxxxxxxx"
