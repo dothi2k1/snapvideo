@@ -1,0 +1,19 @@
+services:
+  snapvideo:
+    build: .
+    image: snapvideo:latest
+    container_name: snapvideo
+    restart: unless-stopped
+    # DNS cố định, tránh lỗi "Could not resolve host" của Docker Desktop trên Windows
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    ports:
+      # Đổi cổng ngoài bằng biến HOST_PORT, ví dụ: HOST_PORT=8080 docker compose up -d
+      - "${HOST_PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      MAX_JOBS: 3
+      # Link iCloud của phím tắt iPhone (để trống thì trang hiện hướng dẫn tự tạo)
+      # Ví dụ: https://www.icloud.com/shortcuts/xxxxxxxxxxxxxxxx
+      SHORTCUT_URL: ""

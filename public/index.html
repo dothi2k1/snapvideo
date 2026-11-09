@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SnapVideo</title>
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="SnapVideo">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23ff2d55'/%3E%3Cpath d='M32 16v24m0 0-10-10m10 10 10-10M18 48h28' stroke='white' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f4f5f8; --card: #ffffff; --text: #0f172a; --muted: #64748b;
+    --border: #e2e8f0; --accent: #ff2d55; --accent-text: #ffffff;
+    --soft: #f1f5f9; --ok: #16a34a; --err: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1020; --card: #141a2e; --text: #e8ecf5; --muted: #94a3b8;
+      --border: #263048; --soft: #1c2440;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: max(16px, env(safe-area-inset-top)) 16px 40px;
+  }
+  main { max-width: 640px; margin: 0 auto; display: grid; gap: 16px; }
+  header { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  header svg { width: 40px; height: 40px; flex: none; }
+  h1 { font-size: 22px; margin: 0; }
+  header p { margin: 0; color: var(--muted); font-size: 14px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  h2 { font-size: 17px; margin: 0 0 12px; }
+  .row { display: flex; gap: 8px; }
+  input[type=url] {
+    flex: 1; min-width: 0; padding: 12px 14px; font-size: 16px;
+    border: 1px solid var(--border); border-radius: 12px; background: var(--soft); color: var(--text);
+  }
+  input[type=url]:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  button, .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 16px; font-size: 15px; font-weight: 600; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--soft); color: var(--text);
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+  }
+  .primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button:disabled { opacity: .6; cursor: progress; }
+  .full { width: 100%; margin-top: 12px; }
+  .status { margin: 10px 0 0; font-size: 14px; color: var(--muted); min-height: 1.5em; }
+  .status.err { color: var(--err); }
+  #result { display: none; }
+  .video { display: flex; gap: 12px; }
+  .video img { width: 96px; height: 128px; object-fit: cover; border-radius: 10px; background: var(--soft); flex: none; }
+  .meta { min-width: 0; }
+  .meta .title { font-weight: 600; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .meta .sub { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  .formats { display: grid; gap: 8px; margin-top: 14px; }
+  .fmt { justify-content: space-between; width: 100%; }
+  .fmt small { color: var(--muted); font-weight: 400; }
+  .primary small { color: inherit; opacity: .85; }
+  ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+  code, .code {
+    font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--soft); border: 1px solid var(--border); border-radius: 8px; padding: 2px 6px;
+    word-break: break-all;
+  }
+  .code { display: block; padding: 10px; margin-top: 6px; }
+  .note { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+  details summary { cursor: pointer; font-weight: 600; margin-top: 12px; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#ff2d55"/><path d="M32 16v24m0 0-10-10m10 10 10-10M18 48h28" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div>
+      <h1>SnapVideo</h1>
+      <p>Tải video TikTok không watermark</p>
+    </div>
+  </header>
+
+  <section class="card">
+    <h2>Dán link TikTok</h2>
+    <form id="form" class="row">
+      <input id="url" type="url" inputmode="url" autocomplete="off" required
+             placeholder="https://www.tiktok.com/@user/video/..." aria-label="Link TikTok">
+      <button id="pasteBtn" type="button" class="hidden">Dán</button>
+    </form>
+    <button id="goBtn" form="form" type="submit" class="primary full">Lấy video</button>
+    <p id="status" class="status" role="status"></p>
+  </section>
+
+  <section id="result" class="card">
+    <div class="video">
+      <img id="thumb" alt="" referrerpolicy="no-referrer">
+      <div class="meta">
+        <div id="title" class="title"></div>
+        <div id="sub" class="sub"></div>
+      </div>
+    </div>
+    <div id="formats" class="formats"></div>
+    <p class="note">Trên iPhone: bấm tải → mở file trong ứng dụng Tệp → Chia sẻ → Lưu video để đưa vào Ảnh.</p>
+  </section>
+
+  <section class="card" id="shortcut">
+    <h2>Phím tắt iPhone</h2>
+    <p style="margin:0 0 4px">Trong TikTok bấm <b>Chia sẻ → Khác (…) → SnapVideo</b>, video sẽ được lưu thẳng vào Ảnh.</p>
+
+    <a id="installBtn" class="btn primary full hidden" href="#">Thêm phím tắt vào iPhone</a>
+    <p id="noShortcut" class="note hidden">Chưa cấu hình link cài phím tắt (<code>SHORTCUT_URL</code>). Tự tạo theo hướng dẫn bên dưới, mất khoảng 2 phút.</p>
+
+    <details id="guide">
+      <summary>Hướng dẫn tự tạo phím tắt</summary>
+      <ol style="margin-top:12px">
+        <li>Mở app <b>Phím tắt</b> (Shortcuts) → <b>+</b> để tạo phím tắt mới, đặt tên <b>SnapVideo</b>.</li>
+        <li>Bấm <b>ⓘ</b> → bật <b>Hiển thị trong Bảng chia sẻ</b> (Show in Share Sheet). Loại đầu vào: <b>URL</b> và <b>Văn bản</b>.</li>
+        <li>Thêm tác vụ <b>Lấy URL từ Đầu vào</b> (Get URLs from Input).</li>
+        <li>Thêm tác vụ <b>Mã hoá URL</b> (URL Encode) → mã hoá kết quả bước trước.</li>
+        <li>Thêm tác vụ <b>Văn bản</b> (Text) với nội dung sau, rồi chèn biến <b>Văn bản đã mã hoá URL</b> vào cuối:
+          <span class="code" id="dlBase"></span>
+          <button type="button" class="full" id="copyBase">Sao chép</button>
+        </li>
+        <li>Thêm tác vụ <b>Lấy nội dung của URL</b> (Get Contents of URL), đầu vào là Văn bản ở bước trên.</li>
+        <li>Thêm tác vụ <b>Lưu vào album ảnh</b> (Save to Photo Album).</li>
+        <li>Tuỳ chọn: thêm <b>Hiển thị thông báo</b> "Đã tải xong".</li>
+      </ol>
+      <p class="note">
+        Muốn video H.264 (tương thích mọi máy) thay vì HEVC, thêm vào cuối link ở bước 5:
+        <code>&amp;format=b%5Bvcodec%5E%3Dh264%5D%2Fb</code>
+      </p>
+      <p class="note">
+        Chia sẻ cho người khác: trong app Phím tắt, giữ phím tắt → Chia sẻ → <b>Sao chép liên kết iCloud</b>,
+        rồi đặt link đó vào biến <code>SHORTCUT_URL</code> trong docker-compose để hiện nút cài 1 chạm.
+      </p>
+    </details>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const form = $("form"), input = $("url"), goBtn = $("goBtn"), status = $("status");
+
+  const setStatus = (msg, isErr = false) => {
+    status.textContent = msg;
+    status.classList.toggle("err", isErr);
+  };
+  const fmtSize = (b) => (b ? (b / 1048576).toFixed(2) + " MB" : "");
+  const fmtNum = (n) => (n == null ? "" : Intl.NumberFormat("vi-VN", { notation: "compact" }).format(n));
+  const dlLink = (url, format) =>
+    `/api/download?url=${encodeURIComponent(url)}` + (format ? `&format=${encodeURIComponent(format)}` : "");
+
+  // Trích link TikTok từ đoạn văn bản chia sẻ (TikTok thường dán kèm chữ)
+  const extractUrl = (text) => {
+    const m = String(text).match(/https?:\/\/[^\s"'<>]*tiktok\.com[^\s"'<>]*/i);
+    return m ? m[0] : String(text).trim();
+  };
+
+  // Nút Dán chỉ hoạt động trên HTTPS/localhost
+  if (navigator.clipboard?.readText && window.isSecureContext) {
+    $("pasteBtn").classList.remove("hidden");
+    $("pasteBtn").onclick = async () => {
+      try { input.value = extractUrl(await navigator.clipboard.readText()); input.focus(); }
+      catch { setStatus("Không đọc được clipboard, hãy dán thủ công.", true); }
+    };
+  }
+
+  function makeButton(href, label, detail, primary) {
+    const a = document.createElement("a");
+    a.className = "btn fmt" + (primary ? " primary" : "");
+    a.href = href;
+    a.setAttribute("download", "");
+    const l = document.createElement("span"); l.textContent = label;
+    const s = document.createElement("small"); s.textContent = detail;
+    a.append(l, s);
+    return a;
+  }
+
+  function renderFormats(info) {
+    const box = $("formats");
+    box.replaceChildren();
+    const url = info.webpage_url;
+
+    // Gộp bản -0/-1 (chỉ khác server CDN), bỏ bản không phát được
+    const seen = new Map();
+    for (const f of info.formats) {
+      if (f.vcodec === "none" || f.format_id === "download" || f.note === "UNPLAYABLE" || !f.height) continue;
+      const key = f.format_id.replace(/-\d+$/, "");
+      if (!seen.has(key)) seen.set(key, f);
+    }
+    const videos = [...seen.values()].sort(
+      (a, b) => b.height - a.height || (a.vcodec === "h264" ? -1 : 1));
+
+    box.append(makeButton(dlLink(url), "Tải chất lượng cao nhất", "MP4", true));
+    for (const f of videos) {
+      const codec = f.vcodec === "h264" ? "H.264" : f.vcodec === "h265" ? "HEVC" : f.vcodec;
+      box.append(makeButton(dlLink(url, f.format_id),
+        `${Math.min(f.width, f.height)}p · ${codec}`, fmtSize(f.filesize)));
+    }
+    if (info.formats.some((f) => f.format_id === "download"))
+      box.append(makeButton(dlLink(url, "download"), "Bản gốc có watermark", "MP4"));
+    if (info.formats.some((f) => f.format_id === "audio"))
+      box.append(makeButton(dlLink(url, "audio"), "Chỉ âm thanh", "MP3"));
+  }
+
+  async function lookup(raw) {
+    const url = extractUrl(raw);
+    if (!url) return;
+    input.value = url;
+    goBtn.disabled = true;
+    $("result").style.display = "none";
+    setStatus("Đang lấy thông tin video…");
+    try {
+      const res = await fetch(`/api/info?url=${encodeURIComponent(url)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+      $("thumb").src = data.thumbnail || "";
+      $("title").textContent = data.title || data.description || `Video ${data.id}`;
+      $("sub").textContent = [
+        data.uploader && "@" + data.uploader,
+        data.duration && data.duration + "s",
+        data.view_count != null && fmtNum(data.view_count) + " lượt xem",
+      ].filter(Boolean).join(" · ");
+      renderFormats(data);
+      $("result").style.display = "block";
+      setStatus("");
+    } catch (e) {
+      setStatus(e.message.replace(/^ERROR:\s*/, ""), true);
+    } finally {
+      goBtn.disabled = false;
+    }
+  }
+
+  form.addEventListener("submit", (e) => { e.preventDefault(); lookup(input.value); });
+
+  // Hỗ trợ mở trang dạng /?url=<link> (dùng được từ phím tắt hoặc bookmark)
+  const qs = new URLSearchParams(location.search).get("url");
+  if (qs) lookup(qs);
+
+  // Phím tắt iPhone
+  $("dlBase").textContent = `${location.origin}/api/download?url=`;
+  $("copyBase").onclick = async () => {
+    const text = $("dlBase").textContent;
+    try { await navigator.clipboard.writeText(text); $("copyBase").textContent = "Đã sao chép"; }
+    catch { window.prompt("Sao chép link này:", text); }
+  };
+
+  fetch("/api/config").then((r) => r.json()).then((cfg) => {
+    if (cfg.shortcutUrl) {
+      $("installBtn").href = cfg.shortcutUrl;
+      $("installBtn").classList.remove("hidden");
+    } else {
+      $("noShortcut").classList.remove("hidden");
+      $("guide").open = true;
+    }
+  }).catch(() => $("noShortcut").classList.remove("hidden"));
+})();
+</script>
+</body>
+</html>
