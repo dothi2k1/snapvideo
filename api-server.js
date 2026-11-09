@@ -21,7 +21,7 @@ const PUBLIC_DIR = path.join(__dirname, "public");
 // Link iCloud của phím tắt iPhone (tạo 1 lần trên iPhone rồi "Sao chép liên kết iCloud")
 const SHORTCUT_URL = process.env.SHORTCUT_URL || "";
 
-const PORT = Number(process.env.PORT) || 3000;
+const PORT = Number(process.env.PORT) || 8990;
 const MAX_JOBS = Number(process.env.MAX_JOBS) || 3;
 const JOB_TIMEOUT_MS = 5 * 60 * 1000;
 const [YTDLP_BIN, ...YTDLP_PREFIX] = (process.env.YTDLP || "python -m yt_dlp").split(" ");
